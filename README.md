@@ -1,2 +1,2 @@
 # ProcDOT-Plugins
-Plugins to add funtionality to ProcDOT
+Plugins to add functionality to ProcDOT
