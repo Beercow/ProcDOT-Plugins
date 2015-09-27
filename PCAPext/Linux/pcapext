@@ -1,0 +1,3 @@
+#!/bin/bash
+
+/opt/remnux-procdot/plugins/pcapext6.py $PROCDOTPLUGIN_WindumpFilePcap

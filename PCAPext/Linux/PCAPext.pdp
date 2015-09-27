@@ -1,0 +1,12 @@
+Name = Extract Files From PCAP
+Author = Beercow
+Description = ProcDOT plugin to extract files from pcap
+Version = 1.1
+Type = MainMenuItem
+Architecture = LinuxShellScript
+File = pcapext
+Priority = 9
+RunHidden = 0
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0
