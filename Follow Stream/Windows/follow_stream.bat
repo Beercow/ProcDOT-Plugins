@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 set out=%PROCDOTPLUGIN_ResultTXT%
-set tcpflow=<path to tcpflow>
+set tcpflow=<path to tcpflow> -T %%N.%%A.%%a-%%B.%%b%%V%%v%%C%%c
 set temp=%LOCALAPPDATA%\temp\tcpflow_out
 set IP=%PROCDOTPLUGIN_CurrentNode_Details_IP-Address%
 
@@ -9,15 +9,17 @@ set IP=%PROCDOTPLUGIN_CurrentNode_Details_IP-Address%
 
 call :parse %IP%
 set new_IP=%one:~-3%.%two:~-3%.%three:~-3%.%four:~-3%
-type %temp%\*%new_IP%* > %out%
+forfiles /p %temp% /m * /c "cmd /c echo. >> @file | echo. >> @file"
+type %temp%\*%new_IP%* > %temp%\PBTEMP
+more %temp%\PBTEMP > %out%
 rmdir /S /Q %temp%
 
 :parse
 set list=%1
 FOR /f "tokens=1,2,3,4 delims=." %%a IN ("%list%") DO (
-  set one=00%%a
-  set two=00%%b
-  set three=00%%c
-  set four=00%%d
+  set one=0%%a
+  set two=0%%b
+  set three=0%%c
+  set four=0%%d
 )
 exit /b
