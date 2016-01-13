@@ -1,0 +1,18 @@
+#!/bin/bash
+out=$PROCDOTPLUGIN_ResultTXT
+temp=/tmp/tcpflow_out
+IP=${PROCDOTPLUGIN_CurrentNode_name:7}
+
+tcpflow -T %N_%A-%B -o $temp -r $PROCDOTPLUGIN_WindumpFilePcap
+
+IFS=. read one two three four <<< $IP
+one=00$one
+two=00$two
+three=00$three
+four=00$four
+
+new_IP=${one:(-3)}.${two:(-3)}.${three:(-3)}.${four:(-3)}
+printf "\n\n" | tee -a "$temp"/*"$new_IP"*
+cat "$temp"/*"$new_IP"* > "$temp"/PBTEMP
+cat "$temp"/PBTEMP | tr -d '\000' > "$out"
+rm -rf $temp
