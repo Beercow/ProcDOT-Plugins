@@ -4,6 +4,6 @@ Update:
 Linux plugin is complete, but a little buggy. Should be able to fix issues when ProcDOT 1.2 is released. Please note, tcplfow 1.4.4 is required.
 
 ToDo:
-Add ability to ungzip data
-Add message if no data is found(instead of showing no feedback)
+Add ability to ungzip data 
+Add message if no data is found(instead of showing no feedback) 
 Check to see if tcpflow is installed and the right version. 
