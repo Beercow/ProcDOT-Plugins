@@ -63,6 +63,5 @@ pcap_tools_files.pdp
 pcap_tools_streams.pdp
 ```
 ##Bugs##
-* gzip not fully functioning
 * Get Follow TCP Stream to show up only on server nodes
 * IP variable in ProcDOT currently broke for linux
