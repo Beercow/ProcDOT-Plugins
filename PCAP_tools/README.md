@@ -1,4 +1,5 @@
 #PCAP Tools#
+\* This pluging works on ProcDOT 1.2 or higher
 
 ##Project source can be downloaded from##
 https://github.com/Beercow/ProcDOT-Plugins/tree/master/PCAP_tools
@@ -63,5 +64,3 @@ pcap_tools_files.pdp
 pcap_tools_streams.pdp
 ```
 ##Bugs##
-* Get Follow TCP Stream to show up only on server nodes
-* IP variable in ProcDOT currently broke for linux
