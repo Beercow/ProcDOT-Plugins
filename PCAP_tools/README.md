@@ -1,5 +1,5 @@
 #PCAP Tools#
-\* This pluging works on ProcDOT 1.2 or higher
+\* Due to slight variations in the plugin engine, be sure to download the plugin for the right version of ProcDOT
 
 ##Project source can be downloaded from##
 https://github.com/Beercow/ProcDOT-Plugins/tree/master/PCAP_tools
@@ -35,32 +35,5 @@ The plugin will allow you to view complete flows nativly in ProcDOT. They will l
 Also, if a stream contains gzipped data, Follow TCP Stream should automagically ungzip the stream.
 
 ![Wireshark gzip data](https://cloud.githubusercontent.com/assets/10360919/12631026/e0710d6c-c514-11e5-9c38-08c083045183.PNG) ![ProcDOT gzip data](https://cloud.githubusercontent.com/assets/10360919/12631024/e067964c-c514-11e5-983c-632997c5ba09.png)
-##File List##
-```
-.:
 
-README.md
-
-./Linux
-
-./Windows
-```
-```
-/Linux:
-
-pcap_tools
-
-pcap_tools_files.pdp
-
-pcap_tools_streams.pdp
-```
-```
-/Windows:
-
-pcap_tools.py
-
-pcap_tools_files.pdp
-
-pcap_tools_streams.pdp
-```
 ##Bugs##
