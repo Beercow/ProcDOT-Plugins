@@ -37,7 +37,7 @@ Also, if a stream contains gzipped data, Follow TCP Stream should automagically 
 ![Wireshark gzip data](https://cloud.githubusercontent.com/assets/10360919/12631026/e0710d6c-c514-11e5-9c38-08c083045183.PNG) ![ProcDOT gzip data](https://cloud.githubusercontent.com/assets/10360919/12631024/e067964c-c514-11e5-983c-632997c5ba09.png)
 
 ####Extract File(s) From Flow####
-Extract File(s) From Flow is controled by pcap_rools__stream_file.pdp, With this config file loaded in ProcDOT plugins folder, there should now be an entry in the right click menu when you are on a server node.
+Extract File(s) From Flow is controled by pcap_tools_stream_file.pdp, With this config file loaded in ProcDOT plugins folder, there should now be an entry in the right click menu when you are on a server node.
 
 The plugin will allow you to extract the files from the flow. Once selected, a new window will open asking you which hash algorithum you want to use(MD5, SHA1, SHA256). Once you are done picking a hash, it will ask for folder to save the files in.
 
