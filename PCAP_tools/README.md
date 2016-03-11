@@ -1,4 +1,4 @@
-#PCAP Tools#
+#PCAP Tools  *Will release when ProcDOT 1.2 is out#
 \* Due to slight variations in the plugin engine, be sure to download the plugin for the right version of ProcDOT
 
 ##Project source can be downloaded from##
