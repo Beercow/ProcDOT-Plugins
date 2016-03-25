@@ -1,4 +1,4 @@
-# ProcDOT-Plugins
+# ProcDOT-Plugins [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=beercow&url=https://github.com/Beercow/ProcDOT-Plugins)
 ![(http://www.procdot.com/downloadprocdotbinaries.htm)](http://ww.procdot.com/webhelp/images/image23.png)
 
 Plugins to add functionality to ProcDOT http://www.procdot.com/
