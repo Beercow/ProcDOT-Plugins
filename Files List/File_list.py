@@ -25,14 +25,8 @@ def main():
                     outfile.write('{{color:red}}' + line)  
                 else:
                     line = line.strip().split('"')
-#                    line = (','.join(line[1:2]) + '\n')
                     line = (','.join(line[1:2]))
-#                    line = (','.join(line[0:1]) + ',"Yes"\n') 
                     outfile.write('"' + line[5:] + '","Yes"\n')
-#                outfile.write(','.join(line[1:2]) + '\n')
-#                if 'fontcolor = red' in line:
-#                    outfile.write (line)
-
         
 if __name__ == '__main__':
     main()
