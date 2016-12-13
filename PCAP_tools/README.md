@@ -20,7 +20,7 @@ Extract Files From PCAP is controled by pcap_tools_files.pdp. With this config f
 
 This plugin will allow you to extract files that are contained in pcap file loaded in ProcDOT. Once selected, a new window will open asking you which hash algorithum you want to use(MD5, SHA1, SHA256). Once you are done picking a hash, it will ask for folder to save the files in.
 
-![Pick Hash](https://cloud.githubusercontent.com/assets/10360919/12631018/e04f8e08-c514-11e5-9ce5-e5309ef12ff5.PNG) ![Save Folder](https://cloud.githubusercontent.com/assets/10360919/12631019/e054af64-c514-11e5-8f95-033de6bbaffd.PNG)
+![pcap_tools_gui](https://cloud.githubusercontent.com/assets/10360919/21141301/fc566b28-c101-11e6-8c83-ce9b6506e552.png) ![Save Folder](https://cloud.githubusercontent.com/assets/10360919/12631019/e054af64-c514-11e5-8f95-033de6bbaffd.PNG)
 
 If there are files in the pcap, they should be hashed accordingly in the save folder.
 ![Hashed Files](https://cloud.githubusercontent.com/assets/10360919/12631022/e05d782e-c514-11e5-9092-dda6f2d10e03.PNG)
