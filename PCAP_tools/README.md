@@ -10,7 +10,7 @@ Brian Maloney
 PCAP_tools is a set of plugins to add functionality to ProcDOT. With this plugin, you will be able to dump files from the pcap and view flows in ProcDOT. TCPflow is used with the plugin to accomplish this.
 
 ###Setup###
-Download files from the repository for your system. Move the pcap_tools(.py) and pdp fles into you ProcDOT plugins directory. These plugins depend on Python 2.7, easygui for python `pip install easygui`, and tcpflow 1.4.4 or later (http://www.digitalcorpora.org/downloads/tcpflow/). Place the tcpflow executable either in the plugin folder or from a system callable path. Fire up ProcDOT and there should an entry in the Plugin menu called **Extract Files From PCAP**, and a right click onption on the graph labeled **Follow TCP Stream**.
+Download files from the repository for your system. Move the pcap_tools(.py) and pdp fles into you ProcDOT plugins directory. These plugins depend on tcpflow 1.4.4 or later (http://www.digitalcorpora.org/downloads/tcpflow/). Place the tcpflow executable either in the plugin folder or from a system callable path. Fire up ProcDOT and there should an entry in the Plugin menu called **Extract Files From PCAP**, and a right click option on a server node labeled **Follow TCP Stream** and **Extract File(s) From Flow**.
 
 ####Extract Files From PCAP####
 Extract Files From PCAP is controled by pcap_tools_files.pdp. With this config file in the ProcDOT plugins folder, there should now be an entry in the plugins menu.
@@ -28,7 +28,7 @@ If there are files in the pcap, they should be hashed accordingly in the save fo
 Follow TCP Stream is controled by pcap_tools_stream.pdp. With this config file loaded in ProcDOT plugins folder, there should now be an entry in the right click menu when you are on a server node.
 ![Server Node Right Click Menu](https://cloud.githubusercontent.com/assets/10360919/12631020/e055c520-c514-11e5-9f1f-c8a7933f6453.png)
 
-The plugin will allow you to view complete flows nativly in ProcDOT. They will look simular to viewing them in Wireshark.
+The plugin will allow you to view complete flows natively in ProcDOT. They will look simular to viewing them in Wireshark.
 
 ![Wireshark Stream View](https://cloud.githubusercontent.com/assets/10360919/12631025/e069edc0-c514-11e5-8180-f44c41e74632.PNG) ![ProcDOT Stream View](https://cloud.githubusercontent.com/assets/10360919/12631023/e0626f0a-c514-11e5-8d04-4a0d5ce22cde.png)
 
