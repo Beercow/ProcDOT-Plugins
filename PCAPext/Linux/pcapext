@@ -8,6 +8,7 @@ import hashlib
 import shutil
 import subprocess as sub
 import sys
+import re
 
 def ext(header):
 	if 'MZ' in header:
@@ -66,8 +67,72 @@ def gui(reply,path):
 				return reply,path
 		else:
 			exit(0)
-			
+
+def error(id, message, fatal=0):
+	# write out error
+	message = "Error " + str(id) + ": " + message + "\r\n"
+	sys.stderr.write(message)
+
+	if fatal==1:
+		# exit program if fatal
+		sys.stderr.write("Exiting...")
+		msgbox(message)
+		exit(id)
+
+def validate_tcpflow_version():
+	minversion = "tcpflow 1.4.4 "
+	versionmatch = "tcpflow\s+([0-9]+)\.([0-9]+)\.([0-9]+)\s";
+
+	try:
+		# Run tcpflow version check
+		testcmd = sub.Popen(['tcpflow', '-V'], stdout=sub.PIPE, stderr=sub.PIPE)
+		testcmd.wait()
+		versionout, versionerr = testcmd.communicate()
+
+		# Fail if command errors out
+		if len(versionerr) > 0:
+			error(501, "tcpflow >= {0} not found, Output:{1}".format(minversion, versionerr), 1)
+
+		# determine minimum version
+		minver = re.search(versionmatch, minversion, re.IGNORECASE)
+		mv1 = int(minver.group(1))
+		mv2 = int(minver.group(2))
+		mv3 = int(minver.group(3))
+
+		# determine current version
+		findver = re.search(versionmatch, versionout, re.IGNORECASE)
+		if findver == None or len(findver.groups()) != 3:
+			v1 = v2 = v3 = 0
+		else:
+			v1 = int(findver.group(1))
+			v2 = int(findver.group(2))
+			v3 = int(findver.group(3))
+
+		# compare current to minimum
+		supported_version=0
+		if v1==mv1:
+			if v2==mv2:
+				if v3>=mv3:
+					supported_version=1
+			elif v2>mv2:
+				supported_version=1
+		elif v1>mv1:
+			supported_version=1
+
+		# fail is unsupported
+		if supported_version==0:
+			if v1==0 and v2==0 and v3==0:
+				error(502, 'tcpflow found, but version >= {0} required, Output:{1}'.format(minversion,versionout), 1)
+			else:
+				error(503, 'tcpflow {0}.{1}.{2} found, but version >= {3} required'.format(v1,v2,v3,minversion), 1)
+	except SystemExit:
+		raise
+	except:
+		# non-fatal fail if anything goes wrong during check
+		error(500, 'Unable to test tcpflow version, version >= {0} required, Exception:{1}'.format(minversion, sys.exc_info()), 0)
+
 def main():
+	validate_tcpflow_version()
 	PCAP = (os.environ['PROCDOTPLUGIN_WindumpFilePcap'])
 	reply = None
 	path = None
