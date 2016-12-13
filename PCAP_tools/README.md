@@ -10,7 +10,7 @@ Brian Maloney
 PCAP_tools is a set of plugins to add functionality to ProcDOT. With this plugin, you will be able to dump files from the pcap and view flows in ProcDOT. TCPflow is used with the plugin to accomplish this.
 
 ###Setup###
-Download files from the repository for your system. Move the pcap_tools(.py) and pdp fles into you ProcDOT plugins directory. These plugins depend on tcpflow 1.4.4 or later (http://www.digitalcorpora.org/downloads/tcpflow/). Place the tcpflow executable either in the plugin folder or from a system callable path. Fire up ProcDOT and there should an entry in the Plugin menu called **Extract Files From PCAP**, and a right click option on a server node labeled **Follow TCP Stream** and **Extract File(s) From Flow**.
+Download files from the repository for your system. Move the pcap_tools(.py) and pdp fles into you ProcDOT plugins directory. These plugins depend on Python 2.7 and tcpflow 1.4.4 or later (http://www.digitalcorpora.org/downloads/tcpflow/). Place the tcpflow executable either in the plugin folder or from a system callable path. Fire up ProcDOT and there should an entry in the Plugin menu called **Extract Files From PCAP**, and a right click option on a server node labeled **Follow TCP Stream** and **Extract File(s) From Flow**.
 
 ####Extract Files From PCAP####
 Extract Files From PCAP is controled by pcap_tools_files.pdp. With this config file in the ProcDOT plugins folder, there should now be an entry in the plugins menu.
