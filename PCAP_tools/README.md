@@ -1,5 +1,4 @@
-#PCAP Tools  *Will release when ProcDOT 1.2 is out [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=beercow&url=https://github.com/Beercow/ProcDOT-Plugins)
-#Plugin engine is broken 1.2 at this time. Waiting for it to be fixed. Thank you for your patience. 
+#PCAP Tools [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=beercow&url=https://github.com/Beercow/ProcDOT-Plugins) 
 \* Due to slight variations in the plugin engine, be sure to download the plugin for the right version of ProcDOT
 
 ##Project source can be downloaded from##
