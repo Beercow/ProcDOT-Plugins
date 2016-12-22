@@ -150,7 +150,15 @@ def parse_flow(IP):
                                 open(out,'ab').write('\n')
                                 open(out,'ab').write(data)
                             else:
-                                break
+                                length = 1
+                                num = 1
+                                body = msg.fp.read()
+                                body = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', body)
+                                header = str(msg)
+                                open(out,'ab').write(status_line)
+                                open(out,'ab').write(header)
+                                open(out,'ab').write('\n')
+                                open(out,'ab').write(body)
                     else:
                         line = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', line)
                         open(out,'ab').write(line)
