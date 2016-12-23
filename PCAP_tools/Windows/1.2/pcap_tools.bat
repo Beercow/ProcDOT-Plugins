@@ -1,4 +1,4 @@
-@setlocal enabledelayedexpansion && python -x "%~f0" %* & exit /b !ERRORLEVEL!
+@setlocal enabledelayedexpansion && py -x "%~f0" %* & exit /b !ERRORLEVEL!
 #!/usr/bin/env python
 
 import os
@@ -95,6 +95,88 @@ def parse_files(temp,path,IP,reply):
             e = str("No files found.")
             open(out,'ab').write(e)
 
+def parse_flow_new(IP):
+    p = sub.Popen(['tcpflow', '-T %T--%A-%B', '-cgB', '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
+    stdout, stderr = p.communicate()
+    stdout = stdout.replace('\r\n', '\n')
+
+    if IP not in stdout:
+        e = str("No tcp flows found for ")+IP
+        open(out, 'ab').write(e)
+    
+    else:
+        open(out,'ab').write('{{{style-id:default;color:blue;style-id:one;color:red}}}')
+        m = re.findall ( '\x1b\[0;31m(.*?)\x1b\[0m|\x1b\[0;34m(.*?)\x1b\[0m', stdout, re.DOTALL)
+        m = iter(m)
+        for b, r in m:
+            if b == '':
+                if IP in r:
+                    r = r[56:]
+                    r = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', r)
+                    open(out,'ab').write('<one>'+r+'</one>')
+            else:
+                if IP in b:
+                    b = b[56:]
+                    match = re.match( '^HTTP.*', b)
+                    try:
+                        if match:
+                            length = 1
+                            num = 0
+                            while length != num:
+                                d = zlib.decompressobj(16+zlib.MAX_WBITS)
+                                output = StringIO.StringIO(b)
+                                status_line = output.readline()
+                                msg = HTTPMessage(output, 0)
+                                isGZipped = msg.get('content-encoding', '').find('gzip') >= 0
+                                isChunked = msg.get('Transfer-Encoding', '').find('chunked') >= 0
+                                if isGZipped and isChunked:
+                                    offset = msg.fp.readline()
+                                    body = msg.fp.read()
+                                    num = int(offset, 16)
+                                    encdata = ''
+                                    newdata = ''
+                                    encdata =body[:num]
+                                    length = len(encdata)
+                                    if length != num:
+                                        c = next(m)
+                                        d, e = c
+                                        b = b + d[56:]
+                                    else:    
+                                        newdata = d.decompress(encdata)
+                                        header = str(msg)
+                                        open(out,'ab').write(status_line)
+                                        open(out,'ab').write(header)
+                                        open(out,'ab').write('\n')
+                                        open(out,'ab').write(newdata)
+                                elif isGZipped:
+                                    length = 1
+                                    num = 1
+                                    body = msg.fp.read()
+                                    data = d.decompress(body)
+                                    header = str(msg)
+                                    open(out,'ab').write(status_line)
+                                    open(out,'ab').write(header)
+                                    open(out,'ab').write('\n')
+                                    open(out,'ab').write(data)
+                                else:
+                                    length = 1
+                                    num = 1
+                                    body = msg.fp.read()
+                                    body = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', body)
+                                    header = str(msg)
+                                    open(out,'ab').write(status_line)
+                                    open(out,'ab').write(header)
+                                    open(out,'ab').write('\n')
+                                    open(out,'ab').write(body)
+                        else:
+                            b = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', b)
+                            open(out,'ab').write(b)
+                    except:
+                        open(out,'ab').write('DECOMPRESSION ERROR')
+                        open(out,'ab').write('\n\n')
+                        b = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', b)
+                        open(out,'ab').write(b)
+        
 #parse out tcp flow for IP
 def parse_flow(IP):
     p = sub.Popen(['tcpflow', '-T %T--%A-%B', '-cgB', '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
@@ -287,7 +369,7 @@ def main():
         elif os.getenv('PROCDOTPLUGIN_Name') == 'Follow TCP Stream':
             IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
             IP = parse_IP(IP)
-            parse_flow(IP)
+            parse_flow_new(IP)
         else:
             p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
             p.wait()
