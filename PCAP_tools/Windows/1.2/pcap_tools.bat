@@ -113,7 +113,10 @@ def parse_flow_new(IP):
                 if IP in r:
                     r = r[56:]
                     r = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', r)
-                    open(out,'ab').write('<one>'+r+'</one>')
+                    if os.stat(out).st_size <= 56:
+                        open(out,'ab').write('<one>'+r+'</one>')
+                    else:
+                        open(out,'ab').write('\n\n'+'<one>'+r+'</one>')
             else:
                 if IP in b:
                     b = b[56:]
