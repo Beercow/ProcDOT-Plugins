@@ -3,6 +3,15 @@
 
 import os
 import sys
+
+if os.getenv('PROCDOTPLUGIN_VerificationRun') == '0' or os.getenv('PROCDOTPLUGIN_Name') == 'Extract Files From PCAP':
+    pass
+else:
+    if os.getenv('PROCDOTPLUGIN_CurrentNode_name')[:6] == 'SERVER':
+        sys.exit(1)
+    else:
+        sys.exit(0)
+        
 import hashlib
 import shutil
 import subprocess as sub
@@ -354,39 +363,33 @@ def main():
     IP = None
     tempFile = None
 
-    if os.getenv('PROCDOTPLUGIN_VerificationRun') == '0' or os.getenv('PROCDOTPLUGIN_Name') == 'Extract Files From PCAP':
-        check_tcpflow_ver()
-        if os.getenv('PROCDOTPLUGIN_Name') == 'Extract Files From PCAP':
-            p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
-            stdout, stderr = p.communicate()
-            if 'tcpflow:' in stderr:
-                e = str("PCAP file missing. Please select a PCAP file and try again.")
-                open(out,'ab').write(e)
-                sys.exit(0)
-            else:
-                p.wait()
-                tempFile = icon(tempFile)
-            reply,path = gui(reply,path,tempFile)
-            parse_files(temp,path,IP,reply)
-            shutil.rmtree(temp)
-        elif os.getenv('PROCDOTPLUGIN_Name') == 'Follow TCP Stream':
-            IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
-            IP = parse_IP(IP)
-            parse_flow_new(IP)
+    check_tcpflow_ver()
+    if os.getenv('PROCDOTPLUGIN_Name') == 'Extract Files From PCAP':
+        p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
+        stdout, stderr = p.communicate()
+        if 'tcpflow:' in stderr:
+            e = str("PCAP file missing. Please select a PCAP file and try again.")
+            open(out,'ab').write(e)
+            sys.exit(0)
         else:
-            p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
             p.wait()
             tempFile = icon(tempFile)
-            reply,path = gui(reply,path,tempFile)
-            IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
-            IP = parse_IP(IP)
-            parse_files(temp,path,IP,reply)
-            shutil.rmtree(temp)
+        reply,path = gui(reply,path,tempFile)
+        parse_files(temp,path,IP,reply)
+        shutil.rmtree(temp)
+    elif os.getenv('PROCDOTPLUGIN_Name') == 'Follow TCP Stream':
+        IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
+        IP = parse_IP(IP)
+        parse_flow_new(IP)
     else:
-        if os.getenv('PROCDOTPLUGIN_CurrentNode_name')[:6] == 'SERVER':
-            sys.exit(1)
-        else:
-            sys.exit(0)
-            
+        p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
+        p.wait()
+        tempFile = icon(tempFile)
+        reply,path = gui(reply,path,tempFile)
+        IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
+        IP = parse_IP(IP)
+        parse_files(temp,path,IP,reply)
+        shutil.rmtree(temp)
+
 if __name__ == '__main__':
     main()
