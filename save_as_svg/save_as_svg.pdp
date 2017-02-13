@@ -1,0 +1,12 @@
+Name = Save Graph as SVG
+Author = Beercow
+Description = 
+Version = 2
+Type = MainMenuItem
+Architecture = WindowsBatchScript
+File = save_as_svg.py
+Priority = 9
+RunHidden = 0
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0

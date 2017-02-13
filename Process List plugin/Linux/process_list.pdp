@@ -1,0 +1,12 @@
+Name = Process List
+Author = Beercow
+Description = List Process Details from Graph
+Version = 1
+Type = MainMenuItem
+Architecture = WindowsBatchScript
+File = process_list.py
+Priority = 9
+RunHidden = 1
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0
