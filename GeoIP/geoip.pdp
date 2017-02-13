@@ -1,0 +1,13 @@
+Name = geoIP
+Author = Beercow
+Description = Geolocation of IP Address
+Version = 1
+Type = ContextMenuItemForGraph
+Architecture = WindowsBatchScript
+File = geoip.py
+Priority = 9
+RunHidden = 1
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0
+CanBeVerified = 1
