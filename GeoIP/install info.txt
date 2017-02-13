@@ -3,5 +3,7 @@ pip install matplotlib-1.5.0-cp27-none-win32.whl
 pip install basmap-1.0.-cp27-non-win32.whl
 pip install Pillow
 pip install adjustText
+http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
+http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz
 activate_this = 'C:\\Users\\<user>\\Virtualenv\\procdot\\Scripts\\activate_this.py'
 execfile(activate_this, dict(__file__=activate_this))
