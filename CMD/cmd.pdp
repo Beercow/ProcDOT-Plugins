@@ -1,10 +1,10 @@
 Name = cmd
 Author = Beercow
-Description = ProcDOT plugin to extract files from pcap
-Version = 2
+Description = Windows command prompt
+Version = 1
 Type = MainMenuItem
 Architecture = WindowsBatchScript
-File = cmd.py
+File = cmd.bat
 Priority = 9
 RunHidden = 0
 RunExclusively = 1
