@@ -1,0 +1,11 @@
+Name = Servers List
+Author = <your name>
+Version = 1
+Type = MainMenuItem
+Architecture = WindowsBatchScript
+File = server.bat
+Priority = 9
+RunHidden = 1
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0
