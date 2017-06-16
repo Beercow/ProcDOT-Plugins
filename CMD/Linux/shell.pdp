@@ -1,0 +1,12 @@
+Name = shell
+Author = Beercow
+Description = Open shell prompt from ProcDOT's Main Menu
+Version = 1
+Type = MainMenuItem
+Architecture = LinuxShellScript
+File = shell.py
+Priority = 9
+RunHidden = 1
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0
