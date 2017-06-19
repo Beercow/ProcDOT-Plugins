@@ -1,0 +1,13 @@
+Name = Verify
+Author = Beercow
+Description = verify test
+Version = 1.1
+Type = ContextMenuItemForGraph
+Architecture = WindowsBatchScript
+File = verify.py
+Priority = 9
+RunHidden = 0
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0
+CanBeVerified = 1
