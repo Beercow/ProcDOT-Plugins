@@ -3,7 +3,6 @@
 
 import os
 import sys
-
 if os.getenv('PROCDOTPLUGIN_VerificationRun') == '0' or os.getenv('PROCDOTPLUGIN_Name') == 'geoIPgraph':
     pass
 else:
@@ -11,16 +10,8 @@ else:
         sys.exit(1)
     else:
         sys.exit(0)
-
 from itertools import islice
-from adjustText import adjust_text
 import pygeoip
-import matplotlib
-# Anti-Grain Geometry (AGG) backend so PyGeoIpMap can be used 'headless'
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
-import webbrowser
 
 def get_target(out):
     if os.getenv('PROCDOTPLUGIN_Name') == 'geoIP': 
@@ -54,64 +45,52 @@ def get_target(out):
             sys.exit(0)
     return ips
 
-def get_results(target, out, lats=[], lons=[], labels=[]):
+def get_results(target, out, outcsv, lats=[], lons=[], labels=[]):
     query = pygeoip.GeoIP('GeoLiteCity.dat')
     asn = pygeoip.GeoIP('GeoIPASNum.dat')
-    for x in target:
-        try:
-            results = query.record_by_addr(x)
-            asn_info = asn.asn_by_addr(x)
-            with open(out, 'ab') as file:
-                file.write('[*] Query Results: \n\n')
-                file.write('\tIP: '+x+'\n')
-                for key, val in results.items():
-                    file.write('\t'+str(key) + ': ' + str(val) + '\n')
+    if os.getenv('PROCDOTPLUGIN_Name') == 'geoIP':
+        for x in target:
+            try:
+                results = query.record_by_addr(x)
+                asn_info = asn.asn_by_addr(x)
+                with open(out, 'ab') as file:
+                    file.write('[*] Query Results: \n\n')
+                    file.write('\tIP: '+x+'\n')
+                    for key, val in results.items():
+                        file.write('\t'+str(key) + ': ' + str(val) + '\n')
+                    try:
+                        file.write('\tasn: '+asn_info+'\n')
+                    except:
+                        file.write('\tasn: No information\n')
+                    file.write('\n[*] End of Results\n\n')
+            except:
+                e = '\t'+str("No information on:")+x+'\n\n[*] End of Results\n\n'
+                open(out,'ab').write(e)
+
+    else:
+        with open(outcsv, 'ab') as file:
+            file.write('"IP","City","Region Code","Area Code","Time Zone","DMA Code","Metro Code","Country Code","Latitude","Postal Code","Longitude","Country Code","Country Name","Continent","ASN"\n')
+            file.write('"*","*","*","*","*","*","*","*","*","*","*","*","*","*","*"\n')
+            for x in target:
                 try:
-                    file.write('\tasn: '+asn_info+'\n')
+                    results = query.record_by_addr(x)
+                    asn_info = asn.asn_by_addr(x)
+                    file.write('"' + x + '","')
+                    for key, val in results.items():
+                        file.write('"' + str(val) + '","')
+                    try:
+                        file.write(asn_info + '"\n')
+                    except:
+                        file.write('N\\A"\n')
                 except:
-                    file.write('\tasn: No information\n')
-                file.write('\n[*] End of Results\n\n')
- 
-        except:
-            e = '\t'+str("No information on:")+x+'\n\n[*] End of Results\n\n'
-            open(out,'ab').write(e)
-#            sys.exit(0)
-
-        if results is not None:
-            lats.append(results['latitude'])
-            lons.append(results['longitude'])
-            labels.append(x+'\n'+str(results['city'])+', '+str(results['country_code']))
-    return lats, lons, labels
-
-def generate_map(lons, lats, labels, output):
-    m = Basemap(projection='cyl', resolution='l')
-    m.drawcountries(linewidth='0.125')
-    m.drawstates(linewidth='0.125')
-    m.drawcoastlines(linewidth='0.0625')
-    m.bluemarble()
-    x, y = m(lons, lats)
-    m.scatter(x, y, s=0.3, color='#ff0000', marker='.', edgecolors='none', zorder=10)
-    texts = []
-    for i, txt in enumerate(labels):
-       texts.append(plt.text(x[i]+0.1, y[i]+0.1, txt, fontsize=0.1, color='#ff0000', fontweight='bold'))
-    adjust_text(texts)
-    plt.savefig(output, dpi=900, bbox_inches='tight')
-#    mng = plt.get_current_fig_manager()
-#    mng.window.state('zoomed')
-#    plt.show(output)
-    webbrowser.open(output)
+                    file.write('"' + x + '"\n')
     
 def main():
-#    if os.getenv('PROCDOTPLUGIN_VerificationRun') == '0' or os.getenv('PROCDOTPLUGIN_Name') == 'geoIPgraph':
     out = os.getenv('PROCDOTPLUGIN_ResultTXT')
+    outcsv = os.getenv('PROCDOTPLUGIN_ResultCSV')
     output = os.getenv('PROCDOTPLUGIN_GraphFilePng')
     target = get_target(out)
-    lats, lons, labels = get_results(target, out)
-    generate_map(lons, lats, labels, output)      
-#    else:
-#        if os.getenv('PROCDOTPLUGIN_CurrentNode_name')[:6] == 'SERVER':
-#            sys.exit(1)
-#        else:
-#            sys.exit(0)
+    get_results(target, out, outcsv)
+
 if __name__ == '__main__':
     main()
