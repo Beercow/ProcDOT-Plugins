@@ -83,7 +83,7 @@ def get_results(target, out, outcsv, lats=[], lons=[], labels=[]):
                     except:
                         file.write('N\\A"\n')
                 except:
-                    file.write('"' + x + '"\n')
+                    file.write('"\n')
     
 def main():
     out = os.getenv('PROCDOTPLUGIN_ResultTXT')
