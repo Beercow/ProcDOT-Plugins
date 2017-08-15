@@ -197,8 +197,12 @@ def parse_flow(IP):
                         open(out,'ab').write(b)
                         
 def on_closing(root):
-    shutil.rmtree(temp)
+    try:
+        shutil.rmtree(temp)
+    except:
+        pass
     root.destroy()
+    sys.exit(0)
 
 def gui(reply,path,tempFile):
     root = Tk()
