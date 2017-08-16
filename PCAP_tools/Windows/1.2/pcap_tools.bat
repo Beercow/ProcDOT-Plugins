@@ -1,6 +1,8 @@
 @setlocal enabledelayedexpansion && py -x "%~f0" %* & exit /b !ERRORLEVEL!
 #!/usr/bin/env python
 
+#works with windump version 3.9.5
+
 import os
 import sys
 
@@ -12,6 +14,7 @@ else:
     else:
         sys.exit(0)
         
+import csv
 import hashlib
 import shutil
 import subprocess as sub
@@ -22,6 +25,10 @@ from Tkinter import *
 import tkFileDialog 
 import base64
 import re
+from datetime import datetime
+from datetime import timedelta
+import time
+import itertools
 
 out = os.getenv('PROCDOTPLUGIN_ResultTXT')
 temp = os.getenv('LOCALAPPDATA')+'\\temp\\tcpflow_out\\'
@@ -197,6 +204,103 @@ def parse_flow(IP):
                         b = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', b)
                         open(out,'ab').write(b)
 
+def isTimeFormat(input):
+    try:
+        time.strptime(input, '%H:%M:%S.%f')
+        return True
+    except ValueError:
+        return False
+                        
+#get packets for animation mode
+def get_packet():
+    procdottime = os.getenv('PROCDOTPLUGIN_AnimationMode_CurrentFrame_TimestampOriginalString').replace(',', '.')
+    if len(procdottime) == 15:
+        procdottime = '0' + procdottime
+    with open(os.getenv('PROCDOTPLUGIN_ProcmonFileCsv'), 'rb') as f:
+        reader = csv.DictReader(f)
+        rows = [row for row in reader if os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address') in str(row['Path']) and 'TCP' in str(row['Operation'])]
+        irofile = iter(rows)
+        for row in irofile:
+            starttime = str(row['\xef\xbb\xbf"Time of Day"']).replace(',', '.')
+            if len(starttime) == 18:
+                starttime = '0' + starttime
+            if starttime[:16] == procdottime:
+                if str(row['Operation']) == 'TCP Receive' or str(row['Operation']) == 'TCP Send':
+                    if str(row['Operation']) == 'TCP Send':
+                        open(out,'ab').write('{{{style-id:default;color:red}}}')
+                    else:
+                        open(out,'ab').write('{{{style-id:default;color:blue}}}')
+                    length = str(row['Detail']).split(',')[0].split(':')[1][1:]
+                    if 'PM' in starttime:
+                        starttime = starttime[:-4] + ' PM'
+                        starttime = datetime.strptime(starttime, '%I:%M:%S.%f %p').strftime('%H:%M:%S.%f')
+                    elif 'AM' in starttime:
+                        starttime = starttime[:-4] + ' AM'
+                        starttime = datetime.strptime(starttime, '%I:%M:%S.%f %p').strftime('%H:%M:%S.%f')
+                    else:
+                        starttime = datetime.strptime(str(starttime)[:-1], '%H:%M:%S.%f').strftime('%H:%M:%S.%f')
+                    row = next(irofile)
+                    endtime = str(row['\xef\xbb\xbf"Time of Day"']).replace(',', '.')
+                    if len(endtime) == 18:
+                        endtime = '0' + endtime
+                    if 'PM' in endtime:
+                        endtime = endtime[:-4] + ' PM'
+                        endtime = datetime.strptime(endtime, '%I:%M:%S.%f %p')
+                        endtime = endtime + timedelta(milliseconds=10)
+                        endtime = endtime.strftime('%H:%M:%S.%f')
+                    elif 'AM' in endtime:
+                        endtime = endtime[:-4] + ' AM'
+                        endtime = datetime.strptime(endtime, '%I:%M:%S.%f %p')
+                        endtime = endtime + timedelta(milliseconds=10)
+                        endtime = endtime.strftime('%H:%M:%S.%f')
+                    else:
+                        endtime = datetime.strptime(str(endtime)[:-1], '%H:%M:%S.%f')
+                        endtime = endtime + timedelta(milliseconds=10)
+                        endtime = endtime.strftime('%H:%M:%S.%f')
+                    execute = os.getenv('PROCDOTPLUGIN_Path2WindumpExecutable') + ' -n -p -A -r ' + os.getenv('PROCDOTPLUGIN_WindumpFilePcap') + ' host ' + os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
+                    p = sub.Popen(execute, stdout=sub.PIPE, stderr=sub.PIPE)
+                    line0, line1 = itertools.tee(p.stdout)
+                    try:
+                        next(line1)
+                    except:
+                        e = str("No tcp packets found for ")+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+(" in this time frame.")
+                        open(out,'wb').write(e)
+                        sys.exit(0)
+                    lines = zip(line0, line1)
+                    lines = iter(lines)
+                    for val0, val1 in lines:
+                        if '(' + length + ')' in val0:
+                            packetstart =  datetime.strptime(val0[:15], '%H:%M:%S.%f')
+                            offset = str(packetstart)[11:13]
+                            offset = int(starttime[:2]) - int(offset)
+                            packetstart = packetstart + timedelta(hours=offset)
+                            packetstart = packetstart.strftime('%H:%M:%S.%f')
+                            if packetstart >= starttime and packetstart <= endtime:
+                                packet = []
+                                while isTimeFormat(val1[:15]) == False:
+                                    packet.append(val1)
+                                    val0, val1 = next(lines)
+                                packet = ''.join(packet)
+                                open(out,'ab').write(str(packet)[40:] + '\n')
+                elif str(row['Operation']) == 'TCP Connect':
+                    open(out,'ab').write('{{{style-id:default;color:white;background-color:red}}}')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('       TCP Connection      \n')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('                           \n')
+                else:                
+                    open(out,'ab').write('{{{style-id:default;color:white;background-color:red}}}')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('       TCP Disconnect      \n')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('                           \n')
+        if os.stat(out).st_size == 0:
+            e = str("No tcp packets found for ")+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+(" in this time frame.")
+            open(out,'wb').write(e)
+            sys.exit(0)
+            
 def on_closing(root):
     try:
         shutil.rmtree(temp)
@@ -235,7 +339,7 @@ def gui(reply,path,tempFile):
     root.bind("<Unmap>", lambda e: root.deiconify())
     root.protocol("WM_DELETE_WINDOW", lambda:on_closing(root))
     root.mainloop()
-    
+
     reply = reply.get()
     path = path.get()
     try:
@@ -319,7 +423,10 @@ def main():
     elif os.getenv('PROCDOTPLUGIN_Name') == 'Follow TCP Stream':
         IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
         IP = parse_IP(IP)
-        parse_flow(IP)
+        if os.getenv('PROCDOTPLUGIN_AnimationMode') == None or os.getenv('PROCDOTPLUGIN_AnimationMode') == '0':
+            parse_flow(IP)
+        else:
+            get_packet()
     else:
         p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
         p.wait()
