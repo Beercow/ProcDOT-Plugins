@@ -278,7 +278,7 @@ def get_packet():
                             if packetstart >= starttime and packetstart <= endtime:
                                 packet = []
                                 while isTimeFormat(val1[:15]) == False:
-                                    packet.append(val1)
+                                    packet.append(val1.replace('\r\n', '\n'))
                                     val0, val1 = next(lines)
                                 packet = ''.join(packet)
                                 open(out,'ab').write(str(packet)[40:] + '\n')
