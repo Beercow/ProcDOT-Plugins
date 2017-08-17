@@ -267,7 +267,7 @@ def get_packet():
                     lines = zip(line0, line1)
                     lines = iter(lines)
                     for val0, val1 in lines:
-                        if 'length'+length in val0:
+                        if 'length '+length in val0:
                             packetstart =  datetime.strptime(val0[:15], '%H:%M:%S.%f')
                             offset = str(packetstart)[11:13]
                             offset = int(starttime[:2]) - int(offset)
