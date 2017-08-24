@@ -1,0 +1,12 @@
+Name = Save Graph as PNG
+Author = Beercow
+Description = 
+Version = 1
+Type = MainMenuItem
+Architecture = WindowsBatchScript
+File = save_as_png.bat
+Priority = 9
+RunHidden = 1
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0
