@@ -36,7 +36,6 @@ def asksaveasfilename(val):
         with open(name, 'w') as f:
             p = sub.Popen([(os.getenv('PROCDOTPLUGIN_Path2DotExecutable')), (os.getenv('PROCDOTPLUGIN_GraphFileDot')), '-Tpng', (dpi), '-o', (name)], stdout=sub.PIPE, stderr=sub.PIPE)
             p.wait()
-    raw_input('PAUSED')
     sys.exit(0)
 
 def on_closing(root):
