@@ -29,12 +29,9 @@ def asksaveasfilename(val):
     name = tkFileDialog.asksaveasfilename(filetypes=[('PNG','*.png')], title='Export Canvas to PNG', defaultextension='.png')
     if name:
         with open(name, 'w') as f:
-            p = sub.Popen(['dot', (os.getenv('PROCDOTPLUGIN_GraphFileDot')), '-Tpng', (dpi), '-o', (name) ], stdout=sub.PIPE, stderr=sub.PIPE)
+            p = sub.Popen([(os.getenv('PROCDOTPLUGIN_Path2DotExecutable')), (os.getenv('PROCDOTPLUGIN_GraphFileDot')), '-Tpng', (dpi), '-o', (name)], stdout=sub.PIPE, stderr=sub.PIPE)
             p.wait()
     sys.exit(0)
-
-def print_value(val, root):
-    root.quit()
 
 def on_closing(root):
     root.destroy()
