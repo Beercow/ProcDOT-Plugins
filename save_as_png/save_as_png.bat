@@ -26,6 +26,7 @@ def asksaveasfilename(val):
     val += float(1)
     val = val*96
     dpi = '-Gdpi=' + str(val)
+    print 'val = ',val
     print 'dpi = ',dpi
     name = tkFileDialog.asksaveasfilename(filetypes=[('PNG','*.png')], title='Export Canvas to PNG', defaultextension='.png')
     print 'name = ',name
