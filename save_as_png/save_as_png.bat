@@ -26,11 +26,16 @@ def asksaveasfilename(val):
     val += float(1)
     val = val*96
     dpi = '-Gdpi=' + str(val)
+    print 'dpi = ',dpi
     name = tkFileDialog.asksaveasfilename(filetypes=[('PNG','*.png')], title='Export Canvas to PNG', defaultextension='.png')
+    print 'name = ',name
+    print 'GraphFileDot = ',os.getenv('PROCDOTPLUGIN_GraphFileDot')
+    print 'Path2DotExecutable = ',os.getenv('PROCDOTPLUGIN_Path2DotExecutable')
     if name:
         with open(name, 'w') as f:
             p = sub.Popen([(os.getenv('PROCDOTPLUGIN_Path2DotExecutable')), (os.getenv('PROCDOTPLUGIN_GraphFileDot')), '-Tpng', (dpi), '-o', (name)], stdout=sub.PIPE, stderr=sub.PIPE)
             p.wait()
+    raw_input('PAUSED')
     sys.exit(0)
 
 def on_closing(root):
