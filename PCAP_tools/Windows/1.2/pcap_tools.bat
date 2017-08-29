@@ -29,6 +29,8 @@ from datetime import datetime
 from datetime import timedelta
 import time
 import itertools
+import string
+from random import *
 
 out = os.getenv('PROCDOTPLUGIN_ResultTXT')
 temp = os.getenv('LOCALAPPDATA')+'\\temp\\tcpflow_out\\'
@@ -113,6 +115,8 @@ def parse_files(temp,path,IP,reply):
 
 #parse out tcp flow for IP
 def parse_flow(IP):
+    styleID = ''.join(choice(string.ascii_lowercase + string.digits) for x in range(randint(8, 12)))
+    ssize = len(styleID)
     p = sub.Popen(['tcpflow', '-T %T--%A-%B', '-cgB', '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
     stdout, stderr = p.communicate()
     stdout = stdout.replace('\r\n', '\n')
@@ -123,7 +127,7 @@ def parse_flow(IP):
     
     else:
         if os.getenv('PROCDOTPLUGIN_PluginEngineVersion') is not None:
-            open(out,'ab').write('{{{style-id:default;color:blue;style-id:one;color:red}}}')
+            open(out,'ab').write('{{{style-id:default;color:blue;style-id:'+styleID+';color:red}}}')
         m = re.findall ( '\x1b\[0;31m(.*?)\x1b\[0m|\x1b\[0;34m(.*?)\x1b\[0m', stdout, re.DOTALL)
         m = iter(m)
         for b, r in m:
@@ -131,14 +135,14 @@ def parse_flow(IP):
                 if IP in r:
                     r = r[56:]
                     r = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', r)
-                    if os.stat(out).st_size <= 56:
+                    if os.stat(out).st_size <= 53 + ssize:
                         if os.getenv('PROCDOTPLUGIN_PluginEngineVersion') is not None:
-                            open(out,'ab').write('<one>'+r+'</one>')
+                            open(out,'ab').write('<'+styleID+'>'+r+'</'+styleID+'>')
                         else:
                             open(out,'ab').write(r)
                     else:
                         if os.getenv('PROCDOTPLUGIN_PluginEngineVersion') is not None:
-                            open(out,'ab').write('\n\n'+'<one>'+r+'</one>')
+                            open(out,'ab').write('\n\n'+'<'+styleID+'>'+r+'</'+styleID+'>')
                         else:
                             open(out,'ab').write('\n\n'+r)
             else:
@@ -180,9 +184,6 @@ def parse_flow(IP):
                                     length = int(isLength)
                                     body = msg.fp.read()
                                     num = len(body)
-#                                    print length
-#                                    print num
-#                                    raw_input('WAIT')
                                     if length != num:
                                         c = next(m)
                                         d, e = c
