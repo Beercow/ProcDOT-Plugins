@@ -154,6 +154,7 @@ def parse_flow(IP):
                                 output = StringIO.StringIO(b)
                                 status_line = output.readline()
                                 msg = HTTPMessage(output, 0)
+                                isLength = msg.get('Content-Length')
                                 isGZipped = msg.get('content-encoding', '').find('gzip') >= 0
                                 isChunked = msg.get('Transfer-Encoding', '').find('chunked') >= 0
                                 if isGZipped and isChunked:
@@ -176,15 +177,24 @@ def parse_flow(IP):
                                         open(out,'ab').write('\n')
                                         open(out,'ab').write(newdata)
                                 elif isGZipped:
-                                    length = 1
-                                    num = 1
+                                    length = int(isLength)
                                     body = msg.fp.read()
-                                    data = d.decompress(body)
-                                    header = str(msg)
-                                    open(out,'ab').write(status_line)
-                                    open(out,'ab').write(header)
-                                    open(out,'ab').write('\n')
-                                    open(out,'ab').write(data)
+                                    num = len(body)
+#                                    print length
+#                                    print num
+#                                    raw_input('WAIT')
+                                    if length != num:
+                                        c = next(m)
+                                        d, e = c
+                                        if IP in d:
+                                            b = b + d[56:]
+                                    else:
+                                        data = d.decompress(body)
+                                        header = str(msg)
+                                        open(out,'ab').write(status_line)
+                                        open(out,'ab').write(header)
+                                        open(out,'ab').write('\n')
+                                        open(out,'ab').write(data)
                                 else:
                                     length = 1
                                     num = 1
