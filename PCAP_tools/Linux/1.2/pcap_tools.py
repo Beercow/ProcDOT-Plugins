@@ -28,6 +28,8 @@ from datetime import datetime
 from datetime import timedelta
 import time
 import itertools
+import string
+from random import *
 
 out = os.getenv('PROCDOTPLUGIN_ResultTXT')
 temp = ('/tmp/tcpflow_out/')
