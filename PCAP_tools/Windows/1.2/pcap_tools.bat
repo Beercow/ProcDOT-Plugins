@@ -311,7 +311,25 @@ def get_packet():
             e = str("No tcp packets found for ")+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+(" in this time frame.")
             open(out,'wb').write(e)
             sys.exit(0)
-            
+
+def filter_pcap(tempFile):
+    root = Tk()
+    root.withdraw()
+    root.wm_iconbitmap(tempFile)
+    name = tkFileDialog.asksaveasfilename(filetypes=[('pcap','*.pcap')], title='Open Packets in Wireshark', defaultextension='.pcap')
+    if name:
+        p = sub.Popen([(os.getenv('PROCDOTPLUGIN_Path2WindumpExecutable')), '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap')), '-w', name, 'host', os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address') ], stdout=sub.PIPE, stderr=sub.PIPE)
+        p.wait()
+        try:
+            try:
+                p = sub.Popen([r'C:\Program Files (x86)\Wireshark\Wireshark.exe', name])
+            except:
+                p = sub.Popen([r'C:\Program Files\Wireshark\Wireshark.exe', name])
+        except:
+            e = str("Wireshark is missing")
+            open(out,'wb').write(e)
+            sys.exit(0)
+
 def on_closing(root):
     try:
         shutil.rmtree(temp)
@@ -377,6 +395,8 @@ def icon(tempFile):
     """ AAABAAEAECAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAA4AAAh/AAAVxAAACfIAAAnyAAAVxAAACH8AAAAO////AP///wD///8A////AP///wD///8A////AAAAAEIAAA3pAABx9wAAwP8AAO//AADv/wAAwP8AAHH3AAAN6QAAAEL///8A////AP///wD///8A////AAAAAEIAABfzAADL/wAA//8AAP//AAD//wAA//8AAP//AAD//wAAy/8AABfzAAAAQv///wD///8A////AAAAAA4AAA3pAADL/wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AADL/wAADekAAAAO////AP///wAAAAh/AABx9wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAHH3AAAIf////wD///8AAAAVxAAAwP8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AADA/wAAFcT///8A////AAAACfIAAO//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA7/8AAAny////AP///wAAAAnyAADv/wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAO//AAAJ8v///wD///8AAAAVxAAAwP8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AADA/wAAFcT///8A////AAAACH8AAHH3AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAAcfcAAAh/////AP///wAAAAAOAAAN6QAAy/8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAAy/8AAA3pAAAADv///wD///8A////AAAAAEIAABfzAADL/wAA//8AAP//AAD//wAA//8AAP//AAD//wAAy/8AABfzAAAAQv///wD///8A////AP///wD///8AAAAAQgAADekAAHH3AADA/wAA7/8AAO//AADA/wAAcfcAAA3pAAAAQv///wD///8A////AP///wD///8A////AP///wAAAAAOAAAIfwAAFcQAAAnyAAAJ8gAAFcQAAAh/AAAADv///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A//8AAPw/AADwDwAA4AcAAMADAADAAwAAgAEAAIABAACAAQAAgAEAAMADAADAAwAA4AcAAPAPAAD8PwAA//8AAA==
     """
     icondata= base64.b64decode(icon)
+    if not os.path.exists(temp):
+        os.makedirs(temp)
     tempFile= temp+"icon.ico"
     iconfile= open(tempFile,"wb")
     iconfile.write(icondata)
@@ -438,6 +458,9 @@ def main():
             parse_flow(IP)
         else:
             get_packet()
+    elif os.getenv('PROCDOTPLUGIN_Name') == 'Open Packets in Wireshark':
+        tempFile = icon(tempFile)
+        filter_pcap(tempFile)
     else:
         p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
         p.wait()
