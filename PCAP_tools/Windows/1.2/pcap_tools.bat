@@ -313,22 +313,18 @@ def get_packet():
             sys.exit(0)
 
 def filter_pcap(tempFile):
-    root = Tk()
-    root.withdraw()
-    root.wm_iconbitmap(tempFile)
-    name = tkFileDialog.asksaveasfilename(filetypes=[('pcap','*.pcap')], title='Open Packets in Wireshark', defaultextension='.pcap')
-    if name:
-        p = sub.Popen([(os.getenv('PROCDOTPLUGIN_Path2WindumpExecutable')), '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap')), '-w', name, 'host', os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address') ], stdout=sub.PIPE, stderr=sub.PIPE)
-        p.wait()
+    name = os.getenv('TEMP')+'\\'+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+'.pcap'
+    p = sub.Popen([(os.getenv('PROCDOTPLUGIN_Path2WindumpExecutable')), '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap')), '-w', name, 'host', os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address') ], stdout=sub.PIPE, stderr=sub.PIPE)
+    p.wait()
+    try:
         try:
-            try:
-                p = sub.Popen([r'C:\Program Files (x86)\Wireshark\Wireshark.exe', name])
-            except:
-                p = sub.Popen([r'C:\Program Files\Wireshark\Wireshark.exe', name])
+            p = sub.Popen([r'C:\Program Files (x86)\Wireshark\Wireshark.exe', name])
         except:
-            e = str("Wireshark is missing")
-            open(out,'wb').write(e)
-            sys.exit(0)
+            p = sub.Popen([r'C:\Program Files\Wireshark\Wireshark.exe', name])
+    except:
+        e = str("Wireshark is missing")
+        open(out,'wb').write(e)
+        sys.exit(0)
 
 def on_closing(root):
     try:
