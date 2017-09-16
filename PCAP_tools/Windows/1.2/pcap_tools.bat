@@ -312,7 +312,7 @@ def get_packet():
             open(out,'wb').write(e)
             sys.exit(0)
 
-def filter_pcap(tempFile):
+def filter_pcap():
     name = os.getenv('TEMP')+'\\'+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+'.pcap'
     p = sub.Popen([(os.getenv('PROCDOTPLUGIN_Path2WindumpExecutable')), '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap')), '-w', name, 'host', os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address') ], stdout=sub.PIPE, stderr=sub.PIPE)
     p.wait()
@@ -455,8 +455,7 @@ def main():
         else:
             get_packet()
     elif os.getenv('PROCDOTPLUGIN_Name') == 'Open Packets in Wireshark':
-        tempFile = icon(tempFile)
-        filter_pcap(tempFile)
+        filter_pcap()
     else:
         p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
         p.wait()
