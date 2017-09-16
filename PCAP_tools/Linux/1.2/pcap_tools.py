@@ -309,6 +309,18 @@ def get_packet():
             e = str("No tcp packets found for ")+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+(" in this time frame.")
             open(out,'wb').write(e)
             sys.exit(0)
+            
+def filter_pcap():
+    name = '/tmp/'+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+'.pcap'
+    p = sub.Popen([(os.getenv('PROCDOTPLUGIN_Path2WindumpExecutable')), '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap')), '-w', name, 'host', os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address') ], stdout=sub.PIPE, stderr=sub.PIPE)
+    p.wait()
+    try:
+        p = sub.Popen(['wireshark', name])
+    except:
+        e = str("Wireshark is missing")
+        open(out,'wb').write(e)
+        sys.exit(0)
+
 def on_closing(root):
     try:
         shutil.rmtree(temp)
@@ -436,6 +448,8 @@ def main():
             parse_flow(IP)
         else:
             get_packet()
+    elif os.getenv('PROCDOTPLUGIN_Name') == 'Open Packets in Wireshark':
+        filter_pcap()
     else:
         p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
         p.wait()
