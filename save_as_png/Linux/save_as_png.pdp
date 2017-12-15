@@ -1,0 +1,12 @@
+Name = Export Canvas to PNG
+Author = Beercow
+Description = 
+Version = 1
+Type = MainMenuItem
+Architecture = LinuxShellScript
+File = save_as_png.py
+Priority = 9
+RunHidden = 1
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0
