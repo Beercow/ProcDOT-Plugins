@@ -1,8 +1,20 @@
-@setlocal enabledelayedexpansion && python -x "%~f0" %* & exit /b !ERRORLEVEL!
+@setlocal enabledelayedexpansion && C:\Python27\python.exe -x "%~f0" %* & exit /b !ERRORLEVEL!
 #!/usr/bin/env python
+
+#works with windump version 3.9.5
 
 import os
 import sys
+
+if os.getenv('PROCDOTPLUGIN_VerificationRun') == '0' or os.getenv('PROCDOTPLUGIN_Name') == 'Extract Files From PCAP':
+    pass
+else:
+    if os.getenv('PROCDOTPLUGIN_CurrentNode_name')[:6] == 'SERVER':
+        sys.exit(1)
+    else:
+        sys.exit(0)
+        
+import csv
 import hashlib
 import shutil
 import subprocess as sub
@@ -13,9 +25,15 @@ from Tkinter import *
 import tkFileDialog 
 import base64
 import re
+from datetime import datetime
+from datetime import timedelta
+import time
+import itertools
+import string
+from random import *
 
 out = os.getenv('PROCDOTPLUGIN_ResultTXT')
-temp = os.getenv('LOCALAPPDATA')+'\\temp\\tcpflow_out\\'
+temp = os.getenv('PROCDOTPLUGIN_TempFolder')+'\\tcpflow_out\\'
 
 #check for executable files
 def ext(header):
@@ -97,6 +115,8 @@ def parse_files(temp,path,IP,reply):
 
 #parse out tcp flow for IP
 def parse_flow(IP):
+    styleID = ''.join(choice(string.ascii_lowercase + string.digits) for x in range(randint(8, 12)))
+    ssize = len(styleID)
     p = sub.Popen(['tcpflow', '-T %T--%A-%B', '-cgB', '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
     stdout, stderr = p.communicate()
     stdout = stdout.replace('\r\n', '\n')
@@ -106,71 +126,215 @@ def parse_flow(IP):
         open(out, 'ab').write(e)
     
     else:
-        m = re.findall ( '\x1b\[0;3[1|4]m(.*?)\x1b\[0m', stdout, re.DOTALL)
-        m = iter(m)    
-        for line in m:
-            if IP in line:
-                line = line[56:]
-                match = re.match( '^HTTP.*', line)
-                try:
-                    if match:
-                        length = 1
-                        num = 0
-                        while length != num:
-                            d = zlib.decompressobj(16+zlib.MAX_WBITS)
-                            output = StringIO.StringIO(line)
-                            status_line = output.readline()
-                            msg = HTTPMessage(output, 0)
-                            isGZipped = msg.get('content-encoding', '').find('gzip') >= 0
-                            isChunked = msg.get('Transfer-Encoding', '').find('chunked') >= 0
-                            if isGZipped and isChunked:
-                                offset = msg.fp.readline()
-                                body = msg.fp.read()
-                                num = int(offset, 16)
-                                encdata = ''
-                                newdata = ''
-                                encdata =body[:num]
-                                length = len(encdata)
-                                if length != num:
-                                    line = line + next(m)[56:]
-                                else:    
-                                    newdata = d.decompress(encdata)
+        if os.getenv('PROCDOTPLUGIN_PluginEngineVersion') is not None:
+            open(out,'ab').write('{{{style-id:default;color:blue;style-id:'+styleID+';color:red}}}')
+        m = re.findall ( '\x1b\[0;31m(.*?)\x1b\[0m|\x1b\[0;34m(.*?)\x1b\[0m', stdout, re.DOTALL)
+        m = iter(m)
+        for b, r in m:
+            if b == '':
+                if IP in r:
+                    r = r[56:]
+                    r = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', r)
+                    if os.stat(out).st_size <= 53 + ssize:
+                        if os.getenv('PROCDOTPLUGIN_PluginEngineVersion') is not None:
+                            open(out,'ab').write('<'+styleID+'>'+r+'</'+styleID+'>')
+                        else:
+                            open(out,'ab').write(r)
+                    else:
+                        if os.getenv('PROCDOTPLUGIN_PluginEngineVersion') is not None:
+                            open(out,'ab').write('\n\n'+'<'+styleID+'>'+r+'</'+styleID+'>')
+                        else:
+                            open(out,'ab').write('\n\n'+r)
+            else:
+                if IP in b:
+                    b = b[56:]
+                    match = re.match( '^HTTP.*', b)
+                    try:
+                        if match:
+                            length = 1
+                            num = 0
+                            while length != num:
+                                d = zlib.decompressobj(16+zlib.MAX_WBITS)
+                                output = StringIO.StringIO(b)
+                                status_line = output.readline()
+                                msg = HTTPMessage(output, 0)
+                                isLength = msg.get('Content-Length')
+                                isGZipped = msg.get('content-encoding', '').find('gzip') >= 0
+                                isChunked = msg.get('Transfer-Encoding', '').find('chunked') >= 0
+                                if isGZipped and isChunked:
+                                    offset = msg.fp.readline()
+                                    body = msg.fp.read()
+                                    num = int(offset, 16)
+                                    encdata = ''
+                                    newdata = ''
+                                    encdata =body[:num]
+                                    length = len(encdata)
+                                    if length != num:
+                                        c = next(m)
+                                        d, e = c
+                                        b = b + d[56:]
+                                    else:    
+                                        newdata = d.decompress(encdata)
+                                        newdata = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', newdata)
+                                        header = str(msg)
+                                        open(out,'ab').write(status_line)
+                                        open(out,'ab').write(header)
+                                        open(out,'ab').write('\n')
+                                        open(out,'ab').write(newdata)
+                                elif isGZipped:
+                                    length = int(isLength)
+                                    body = msg.fp.read()
+                                    num = len(body)
+                                    if length != num:
+                                        c = next(m)
+                                        d, e = c
+                                        if IP in d:
+                                            b = b + d[56:]
+                                    else:
+                                        data = d.decompress(body)
+                                        data = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', data)
+                                        header = str(msg)
+                                        open(out,'ab').write(status_line)
+                                        open(out,'ab').write(header)
+                                        open(out,'ab').write('\n')
+                                        open(out,'ab').write(data)
+                                else:
+                                    length = 1
+                                    num = 1
+                                    body = msg.fp.read()
+                                    body = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', body)
                                     header = str(msg)
                                     open(out,'ab').write(status_line)
                                     open(out,'ab').write(header)
                                     open(out,'ab').write('\n')
-                                    open(out,'ab').write(newdata)
-                            elif isGZipped:
-                                length = 1
-                                num = 1
-                                body = msg.fp.read()
-                                data = d.decompress(body)
-                                header = str(msg)
-                                open(out,'ab').write(status_line)
-                                open(out,'ab').write(header)
-                                open(out,'ab').write('\n')
-                                open(out,'ab').write(data)
-                            else:
-                                length = 1
-                                num = 1
-                                body = msg.fp.read()
-                                body = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', body)
-                                header = str(msg)
-                                open(out,'ab').write(status_line)
-                                open(out,'ab').write(header)
-                                open(out,'ab').write('\n')
-                                open(out,'ab').write(body)
+                                    open(out,'ab').write(body)
+                        else:
+                            b = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', b)
+                            open(out,'ab').write(b)
+                    except:
+                        open(out,'ab').write('DECOMPRESSION ERROR')
+                        open(out,'ab').write('\n\n')
+                        b = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', b)
+                        open(out,'ab').write(b)
+
+def isTimeFormat(input):
+    try:
+        time.strptime(input, '%H:%M:%S.%f')
+        return True
+    except ValueError:
+        return False
+                        
+#get packets for animation mode
+def get_packet():
+    procdottime = os.getenv('PROCDOTPLUGIN_AnimationMode_CurrentFrame_TimestampOriginalString').replace(',', '.')
+    if len(procdottime) == 15:
+        procdottime = '0' + procdottime
+    with open(os.getenv('PROCDOTPLUGIN_ProcmonFileCsv'), 'rb') as f:
+        reader = csv.DictReader(f)
+        rows = [row for row in reader if os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address') in str(row['Path']) and 'TCP' in str(row['Operation'])]
+        irofile = iter(rows)
+        for row in irofile:
+            starttime = str(row['\xef\xbb\xbf"Time of Day"']).replace(',', '.')
+            if len(starttime) == 18:
+                starttime = '0' + starttime
+            if starttime[:16] == procdottime:
+                if str(row['Operation']) == 'TCP Receive' or str(row['Operation']) == 'TCP Send':
+                    if str(row['Operation']) == 'TCP Send':
+                        open(out,'ab').write('{{{style-id:default;color:red}}}')
                     else:
-                        line = re.sub( '[^!\"#\$%&\'\(\)\*\+,-\./0-9:;<=>\?@A-Z\[\]\^_`a-z\{\|\}\\\~\t\n\r ]','.', line)
-                        open(out,'ab').write(line)
-                except:
-                    open(out,'ab').write('DECOMPRESSION ERROR')
-                    open(out,'ab').write('\n\n')
-                    open(out,'ab').write(line)
+                        open(out,'ab').write('{{{style-id:default;color:blue}}}')
+                    length = str(row['Detail']).split(',')[0].split(':')[1][1:]
+                    if 'PM' in starttime:
+                        starttime = starttime[:-4] + ' PM'
+                        starttime = datetime.strptime(starttime, '%I:%M:%S.%f %p').strftime('%H:%M:%S.%f')
+                    elif 'AM' in starttime:
+                        starttime = starttime[:-4] + ' AM'
+                        starttime = datetime.strptime(starttime, '%I:%M:%S.%f %p').strftime('%H:%M:%S.%f')
+                    else:
+                        starttime = datetime.strptime(str(starttime)[:-1], '%H:%M:%S.%f').strftime('%H:%M:%S.%f')
+                    row = next(irofile)
+                    endtime = str(row['\xef\xbb\xbf"Time of Day"']).replace(',', '.')
+                    if len(endtime) == 18:
+                        endtime = '0' + endtime
+                    if 'PM' in endtime:
+                        endtime = endtime[:-4] + ' PM'
+                        endtime = datetime.strptime(endtime, '%I:%M:%S.%f %p')
+                        endtime = endtime + timedelta(milliseconds=10)
+                        endtime = endtime.strftime('%H:%M:%S.%f')
+                    elif 'AM' in endtime:
+                        endtime = endtime[:-4] + ' AM'
+                        endtime = datetime.strptime(endtime, '%I:%M:%S.%f %p')
+                        endtime = endtime + timedelta(milliseconds=10)
+                        endtime = endtime.strftime('%H:%M:%S.%f')
+                    else:
+                        endtime = datetime.strptime(str(endtime)[:-1], '%H:%M:%S.%f')
+                        endtime = endtime + timedelta(milliseconds=10)
+                        endtime = endtime.strftime('%H:%M:%S.%f')
+                    execute = os.getenv('PROCDOTPLUGIN_Path2WindumpExecutable') + ' -n -p -A -r ' + '"' + os.getenv('PROCDOTPLUGIN_WindumpFilePcap') + '"' + ' host ' + os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
+                    p = sub.Popen(execute, stdout=sub.PIPE, stderr=sub.PIPE)
+                    line0, line1 = itertools.tee(p.stdout)
+                    try:
+                        next(line1)
+                    except:
+                        e = str("No tcp packets found for ")+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+(" in this time frame.")
+                        open(out,'wb').write(e)
+                        sys.exit(0)
+                    lines = zip(line0, line1)
+                    lines = iter(lines)
+                    for val0, val1 in lines:
+                        if '(' + length + ')' in val0:
+                            packetstart =  datetime.strptime(val0[:15], '%H:%M:%S.%f')
+                            offset = str(packetstart)[11:13]
+                            offset = int(starttime[:2]) - int(offset)
+                            packetstart = packetstart + timedelta(hours=offset)
+                            packetstart = packetstart.strftime('%H:%M:%S.%f')
+                            if packetstart >= starttime and packetstart <= endtime:
+                                packet = []
+                                while isTimeFormat(val1[:15]) == False:
+                                    packet.append(val1.replace('\r\n', '\n'))
+                                    val0, val1 = next(lines)
+                                packet = ''.join(packet)
+                                open(out,'ab').write(str(packet)[40:] + '\n')
+                elif str(row['Operation']) == 'TCP Connect':
+                    open(out,'ab').write('{{{style-id:default;color:white;background-color:red}}}')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('       TCP Connection      \n')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('                           \n')
+                else:                
+                    open(out,'ab').write('{{{style-id:default;color:white;background-color:red}}}')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('       TCP Disconnect      \n')
+                    open(out,'ab').write('                           \n')
+                    open(out,'ab').write('                           \n')
+        if os.stat(out).st_size == 0:
+            e = str("No tcp packets found for ")+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+(" in this time frame.")
+            open(out,'wb').write(e)
+            sys.exit(0)
+
+def filter_pcap():
+    name = os.getenv('PROCDOTPLUGIN_TempFolder')+'\\'+os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')+'.pcap'
+    p = sub.Popen([(os.getenv('PROCDOTPLUGIN_Path2WindumpExecutable')), '-r', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap')), '-w', name, 'host', os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address') ], stdout=sub.PIPE, stderr=sub.PIPE)
+    p.wait()
+    try:
+        try:
+            p = sub.Popen([r'C:\Program Files (x86)\Wireshark\Wireshark.exe', name])
+        except:
+            p = sub.Popen([r'C:\Program Files\Wireshark\Wireshark.exe', name])
+    except:
+        e = str("Wireshark is missing")
+        open(out,'wb').write(e)
+        sys.exit(0)
 
 def on_closing(root):
-    shutil.rmtree(temp)
+    try:
+        shutil.rmtree(temp)
+    except:
+        pass
     root.destroy()
+    sys.exit(0)
     
 def gui(reply,path,tempFile):
     root = Tk()
@@ -202,7 +366,7 @@ def gui(reply,path,tempFile):
     root.bind("<Unmap>", lambda e: root.deiconify())
     root.protocol("WM_DELETE_WINDOW", lambda:on_closing(root))
     root.mainloop()
-    
+
     reply = reply.get()
     path = path.get()
     try:
@@ -229,6 +393,8 @@ def icon(tempFile):
     """ AAABAAEAECAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AAAAAA4AAAh/AAAVxAAACfIAAAnyAAAVxAAACH8AAAAO////AP///wD///8A////AP///wD///8A////AAAAAEIAAA3pAABx9wAAwP8AAO//AADv/wAAwP8AAHH3AAAN6QAAAEL///8A////AP///wD///8A////AAAAAEIAABfzAADL/wAA//8AAP//AAD//wAA//8AAP//AAD//wAAy/8AABfzAAAAQv///wD///8A////AAAAAA4AAA3pAADL/wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AADL/wAADekAAAAO////AP///wAAAAh/AABx9wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAHH3AAAIf////wD///8AAAAVxAAAwP8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AADA/wAAFcT///8A////AAAACfIAAO//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA7/8AAAny////AP///wAAAAnyAADv/wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAO//AAAJ8v///wD///8AAAAVxAAAwP8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AADA/wAAFcT///8A////AAAACH8AAHH3AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAAcfcAAAh/////AP///wAAAAAOAAAN6QAAy/8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAAy/8AAA3pAAAADv///wD///8A////AAAAAEIAABfzAADL/wAA//8AAP//AAD//wAA//8AAP//AAD//wAAy/8AABfzAAAAQv///wD///8A////AP///wD///8AAAAAQgAADekAAHH3AADA/wAA7/8AAO//AADA/wAAcfcAAA3pAAAAQv///wD///8A////AP///wD///8A////AP///wAAAAAOAAAIfwAAFcQAAAnyAAAJ8gAAFcQAAAh/AAAADv///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A//8AAPw/AADwDwAA4AcAAMADAADAAwAAgAEAAIABAACAAQAAgAEAAMADAADAAwAA4AcAAPAPAAD8PwAA//8AAA==
     """
     icondata= base64.b64decode(icon)
+    if not os.path.exists(temp):
+        os.makedirs(temp)
     tempFile= temp+"icon.ico"
     iconfile= open(tempFile,"wb")
     iconfile.write(icondata)
@@ -269,39 +435,38 @@ def main():
     IP = None
     tempFile = None
 
-    if os.getenv('PROCDOTPLUGIN_VerificationRun') == '0' or os.getenv('PROCDOTPLUGIN_Name') == 'Extract Files From PCAP':
-        check_tcpflow_ver()
-        if os.getenv('PROCDOTPLUGIN_Name') == 'Extract Files From PCAP':
-            p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
-            stdout, stderr = p.communicate()
-            if 'tcpflow:' in stderr:
-                e = str("PCAP file missing. Please select a PCAP file and try again.")
-                open(out,'ab').write(e)
-                sys.exit(0)
-            else:
-                p.wait()
-                tempFile = icon(tempFile)
-            reply,path = gui(reply,path,tempFile)
-            parse_files(temp,path,IP,reply)
-            shutil.rmtree(temp)
-        elif os.getenv('PROCDOTPLUGIN_Name') == 'Follow TCP Stream':
-            IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
-            IP = parse_IP(IP)
-            parse_flow(IP)
+    check_tcpflow_ver()
+    if os.getenv('PROCDOTPLUGIN_Name') == 'Extract Files From PCAP':
+        p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
+        stdout, stderr = p.communicate()
+        if 'tcpflow:' in stderr:
+            e = str("PCAP file missing. Please select a PCAP file and try again.")
+            open(out,'ab').write(e)
+            sys.exit(0)
         else:
-            p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
             p.wait()
             tempFile = icon(tempFile)
-            reply,path = gui(reply,path,tempFile)
-            IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
-            IP = parse_IP(IP)
-            parse_files(temp,path,IP,reply)
-            shutil.rmtree(temp)
-    else:
-        if os.getenv('PROCDOTPLUGIN_CurrentNode_name')[:6] == 'SERVER':
-            sys.exit(1)
+        reply,path = gui(reply,path,tempFile)
+        parse_files(temp,path,IP,reply)
+        shutil.rmtree(temp)
+    elif os.getenv('PROCDOTPLUGIN_Name') == 'Follow TCP Stream':
+        IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
+        IP = parse_IP(IP)
+        if os.getenv('PROCDOTPLUGIN_AnimationMode') == None or os.getenv('PROCDOTPLUGIN_AnimationMode') == '0':
+            parse_flow(IP)
         else:
-            sys.exit(0)
-            
+            get_packet()
+    elif os.getenv('PROCDOTPLUGIN_Name') == 'Open Packets in Wireshark':
+        filter_pcap()
+    else:
+        p = sub.Popen(['tcpflow', '-T %N_%A-%B', '-o', (temp), '-ar', (os.getenv('PROCDOTPLUGIN_WindumpFilePcap'))], stdout=sub.PIPE, stderr=sub.PIPE)
+        p.wait()
+        tempFile = icon(tempFile)
+        reply,path = gui(reply,path,tempFile)
+        IP = os.getenv('PROCDOTPLUGIN_CurrentNode_Details_IP_Address')
+        IP = parse_IP(IP)
+        parse_files(temp,path,IP,reply)
+        shutil.rmtree(temp)
+
 if __name__ == '__main__':
     main()
