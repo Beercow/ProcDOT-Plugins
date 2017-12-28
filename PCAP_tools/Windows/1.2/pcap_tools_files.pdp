@@ -1,7 +1,7 @@
 Name = Extract Files From PCAP
 Author = Beercow
 Description = ProcDOT plugin to extract files from pcap
-Version = 2.1
+Version = 2.5
 Type = MainMenuItem
 Architecture = WindowsBatchScript
 File = pcap_tools.bat
