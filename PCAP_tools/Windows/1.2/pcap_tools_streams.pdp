@@ -1,7 +1,7 @@
 Name = Follow TCP Stream
 Author = Beercow
 Description = ProcDOT plugin to follow streams from pcap
-Version = 2.2
+Version = 2.5
 Type = ContextMenuItemForGraph
 Architecture = WindowsBatchScript
 File = pcap_tools.bat
