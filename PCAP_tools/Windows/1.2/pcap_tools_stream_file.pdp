@@ -1,7 +1,7 @@
 Name = Extract File(s) From Flow
 Author = Beercow
 Description = ProcDOT plugin to extract file from TCP stream
-Version = 1.1
+Version = 2.5
 Type = ContextMenuItemForGraph
 Architecture = WindowsBatchScript
 File = pcap_tools.bat
