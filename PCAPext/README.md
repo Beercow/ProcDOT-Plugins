@@ -1,3 +1,0 @@
-#This plugin is no longer maintained. It will be replaced with PCAP_tools plugin.#
-
-PCAPext allows you to dump the files from a pcap directly from ProcDOT. PCAPext can calculate the hash of the file in MD5, SHA1, or SHA256. Please note, for the Linux version, easygui needs to be installed through pip.
