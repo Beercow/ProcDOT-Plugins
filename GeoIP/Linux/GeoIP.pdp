@@ -1,0 +1,13 @@
+Name = GeoIP
+Author = Beercow
+Description = Adds geoip data to details
+Version = 0.1
+Type = EventHandler
+Architecture = LinuxShellScript
+File = GeoIP.py
+Priority = 9
+RunHidden = 0
+RunExclusively = 1
+CanOverrideOtherPlugins = 0
+CanOverrideProcdot = 0
+Event = AfterRefresh
