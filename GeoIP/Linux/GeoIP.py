@@ -26,12 +26,12 @@ def database(url,dbgz,db):
 if os.path.isfile('GeoLiteCity.dat'):
     pass
 else:
-    database('http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz', 'GeoLiteCity.dat.gz', 'GeoLiteCity.dat')
+    database('https://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz', 'GeoLiteCity.dat.gz', 'GeoLiteCity.dat')
 
 if os.path.isfile('GeoIPASNum.dat'):
     pass
 else:
-    database('http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz', 'GeoIPASNum.dat.gz', 'GeoIPASNum.dat')
+    database('https://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz', 'GeoIPASNum.dat.gz', 'GeoIPASNum.dat')
        
 tfolder =  os.listdir(os.getenv('PROCDOTPLUGIN_TempFolder'))
 details = open(os.getenv('PROCDOTPLUGIN_GraphFileDetails'),'rb').readlines()
